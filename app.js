@@ -35,21 +35,30 @@ auth.onAuthStateChanged(user=>{
     return;
   }
 
-  db.collection('usuarios').doc(user.email).get().then(doc=>{
-    if(!doc.exists){
-      alert('Usuário sem perfil');
-      auth.signOut();
-      return;
-    }
+  db.collection('usuarios').doc(user.email).get().then(doc => {
 
-    usuarioAtual = doc.data();
-    perfil.innerText = 'Perfil: ' + usuarioAtual.role;
+  if (!doc.exists) {
+    alert('Usuário sem perfil cadastrado no Firestore');
+    auth.signOut();
+    return;
+  }
 
-    loginBox.style.display='none';
-    appBox.style.display='block';
+  usuarioAtual = doc.data();
 
-    carregarOrdens();
-  });
+  if (!usuarioAtual.role) {
+    alert('Perfil sem campo "role"');
+    auth.signOut();
+    return;
+  }
+
+  perfil.innerText = 'Perfil: ' + usuarioAtual.role;
+
+  loginBox.style.display = 'none';
+  appBox.style.display = 'block';
+
+  carregarOrdens();
+});
+
 });
 
 function criarOrdem(){
