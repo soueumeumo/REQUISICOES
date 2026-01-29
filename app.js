@@ -77,23 +77,25 @@ function criarOrdem() {
   const statusEl = document.getElementById('status');
 
   if (!clienteEl || !responsavelEl || !operacoesEl || !statusEl) {
-    alert('Erro: campos do formulário não encontrados');
+    alert('Erro interno: campos não encontrados');
     return;
   }
 
-  if (!clienteEl.value || !responsavelEl.value) {
+  if (!clienteEl.value.trim() || !responsavelEl.value.trim()) {
     alert('Cliente e responsável são obrigatórios');
     return;
   }
 
+  const statusFinal = statusEl.value || 'pendente';
+
   db.collection('ordens').add({
-    cliente: clienteEl.value,
-    responsavel: responsavelEl.value,
+    cliente: clienteEl.value.trim(),
+    responsavel: responsavelEl.value.trim(),
     operacoes: operacoesEl.value
-      .split('\\n')
+      .split('\n')
       .filter(l => l.trim() !== '')
       .map(o => ({ texto: o, feito: false })),
-    status: statusEl.value || 'pendente', // ✅ nunca undefined
+    status: statusFinal,      // 🔥 IMPOSSÍVEL ser undefined
     ativo: true,
     criado: new Date()
   });
@@ -102,4 +104,5 @@ function criarOrdem() {
   responsavelEl.value = '';
   operacoesEl.value = '';
 }
+
 
