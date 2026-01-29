@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ===== FUNÇÕES =====
 
-function criarOrdem() {
+window.criarOrdem = function () {
 
   const clienteEl = document.getElementById('cliente');
   const responsavelEl = document.getElementById('responsavel');
