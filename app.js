@@ -11,11 +11,6 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-const loginBox = document.getElementById('login');
-const appBox = document.getElementById('app');
-const perfil = document.getElementById('perfil');
-const lista = document.getElementById('lista');
-
 let usuarioAtual = null;
 let editId = null;
 
@@ -122,3 +117,48 @@ function salvarEdicao(){
 function fecharModal(){ modal.style.display='none'; }
 
 function arquivar(id){ db.collection('ordens').doc(id).update({ativo:false}); }
+
+document.addEventListener('DOMContentLoaded', () => {
+
+  const loginBox = document.getElementById('login');
+  const appBox = document.getElementById('app');
+  const perfil = document.getElementById('perfil');
+  const lista = document.getElementById('lista');
+
+  if (!loginBox || !appBox) {
+    console.error('ERRO: elementos #login ou #app não encontrados');
+    return;
+  }
+
+  auth.onAuthStateChanged(user => {
+
+    if (!user) {
+      loginBox.style.display = 'block';
+      appBox.style.display = 'none';
+      return;
+    }
+
+    db.collection('usuarios').doc(user.email).get().then(doc => {
+
+      if (!doc.exists) {
+        alert('Usuário sem perfil cadastrado');
+        auth.signOut();
+        return;
+      }
+
+      usuarioAtual = doc.data();
+
+      if (perfil) {
+        perfil.innerText = 'Perfil: ' + usuarioAtual.role;
+      }
+
+      loginBox.style.display = 'none';
+      appBox.style.display = 'block';
+
+      carregarOrdens();
+    });
+
+  });
+
+});
+
