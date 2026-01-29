@@ -1,4 +1,4 @@
-// FIREBASE CONFIG
+// ================= FIREBASE =================
 const firebaseConfig = {
   apiKey: "AIzaSyCXExMKGz5gKFnj2-KHAIMgbphUEKfV_KM",
   authDomain: "dashboard-eric-2021.firebaseapp.com",
@@ -10,9 +10,11 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
+// ================= ESTADO =================
 let usuarioAtual = null;
 let editId = null;
 
+// ================= DOM READY =================
 document.addEventListener('DOMContentLoaded', () => {
 
   const loginBox = document.getElementById('login');
@@ -20,23 +22,19 @@ document.addEventListener('DOMContentLoaded', () => {
   const perfil   = document.getElementById('perfil');
   const lista    = document.getElementById('lista');
 
-  if (!loginBox || !appBox) {
-    console.error('ERRO: elementos #login ou #app não encontrados');
-    return;
-  }
-
-  // LOGIN (precisa ser global)
+  // ---------- LOGIN ----------
   window.login = function () {
     auth.signInWithEmailAndPassword(
       document.getElementById('email').value,
       document.getElementById('senha').value
-    ).catch(e => alert(e.message));
+    ).catch(err => alert(err.message));
   };
 
   window.logout = function () {
     auth.signOut();
   };
 
+  // ---------- AUTH STATE ----------
   auth.onAuthStateChanged(user => {
 
     if (!user) {
@@ -47,64 +45,100 @@ document.addEventListener('DOMContentLoaded', () => {
 
     db.collection('usuarios').doc(user.email).get().then(doc => {
 
-      if (!doc.exists) {
-        alert('Usuário sem perfil cadastrado');
+      if (!doc.exists || !doc.data().role) {
+        alert('Usuário sem perfil configurado');
         auth.signOut();
         return;
       }
 
       usuarioAtual = doc.data();
-
-      if (perfil) {
-        perfil.innerText = 'Perfil: ' + usuarioAtual.role;
-      }
+      perfil.innerText = 'Perfil: ' + usuarioAtual.role;
 
       loginBox.style.display = 'none';
       appBox.style.display = 'block';
 
       carregarOrdens();
     });
-
   });
 
-  // ===== FUNÇÕES =====
+  // ---------- CRIAR ORDEM ----------
+  window.criarOrdem = function () {
 
-window.criarOrdem = function () {
+    if (!usuarioAtual || usuarioAtual.role === 'leitura') {
+      alert('Sem permissão');
+      return;
+    }
 
-  const clienteEl = document.getElementById('cliente');
-  const responsavelEl = document.getElementById('responsavel');
-  const operacoesEl = document.getElementById('operacoes');
-  const statusEl = document.getElementById('status');
+    const clienteEl = document.getElementById('cliente');
+    const responsavelEl = document.getElementById('responsavel');
+    const operacoesEl = document.getElementById('operacoes');
+    const statusEl = document.getElementById('status');
 
-  // Verificação obrigatória
-  if (!clienteEl || !responsavelEl || !operacoesEl || !statusEl) {
-    alert('Erro interno: campos do formulário não encontrados');
-    return;
-  }
+    if (!clienteEl || !responsavelEl || !operacoesEl || !statusEl) {
+      alert('Erro interno');
+      return;
+    }
 
-  if (!clienteEl.value.trim() || !responsavelEl.value.trim()) {
-    alert('Cliente e responsável são obrigatórios');
-    return;
-  }
+    const cliente = clienteEl.value.trim();
+    const responsavel = responsavelEl.value.trim();
+    const status = statusEl.value || 'pendente';
 
-  // Garante que status nunca é undefined
-  const statusFinal = statusEl.value || 'pendente';
+    if (!cliente || !responsavel) {
+      alert('Cliente e responsável obrigatórios');
+      return;
+    }
 
-  db.collection('ordens').add({
-    cliente: clienteEl.value.trim(),
-    responsavel: responsavelEl.value.trim(),
-    operacoes: operacoesEl.value
+    const operacoes = operacoesEl.value
       .split('\n')
-      .filter(l => l.trim() !== '')
-      .map(o => ({ texto: o, feito: false })),
-    status: statusFinal,
-    ativo: true,
-    criado: new Date()
-  });
+      .map(o => o.trim())
+      .filter(o => o !== '')
+      .map(o => ({ texto: o, feito: false }));
 
-  clienteEl.value = '';
-  responsavelEl.value = '';
-  operacoesEl.value = '';
-}
+    db.collection('ordens').add({
+      cliente,
+      responsavel,
+      operacoes,
+      status,
+      ativo: true,
+      criado: firebase.firestore.FieldValue.serverTimestamp()
+    })
+    .then(() => {
+      clienteEl.value = '';
+      responsavelEl.value = '';
+      operacoesEl.value = '';
+    })
+    .catch(err => {
+      console.error(err);
+      alert('Erro ao criar ordem');
+    });
+  };
 
+  // ---------- LISTAR ----------
+  function carregarOrdens() {
+    db.collection('ordens')
+      .where('ativo', '==', true)
+      .onSnapshot(snapshot => {
+        lista.innerHTML = '';
+        snapshot.forEach(doc => {
+          const d = doc.data();
+          const li = document.createElement('li');
+          li.innerHTML = `
+            <strong>${d.cliente}</strong><br>
+            ${d.responsavel}<br>
+            <span>${d.status}</span><br>
+            ${usuarioAtual.role === 'admin'
+              ? `<button onclick="arquivar('${doc.id}')">Arquivar</button>`
+              : ''}
+          `;
+          lista.appendChild(li);
+        });
+      });
+  }
 
+  // ---------- ARQUIVAR ----------
+  window.arquivar = function (id) {
+    if (usuarioAtual.role !== 'admin') return;
+    db.collection('ordens').doc(id).update({ ativo: false });
+  };
+
+});
