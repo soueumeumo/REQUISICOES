@@ -69,49 +69,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ===== FUNÇÕES =====
 
-  window.criarOrdem = function () {
-    if (usuarioAtual.role === 'leitura') {
-      alert('Perfil somente leitura');
-      return;
-    }
+function criarOrdem() {
 
-    db.collection('ordens').add({
-      cliente: cliente.value,
-      responsavel: responsavel.value,
-      operacoes: operacoes.value.split('\n').map(o => ({ texto: o, feito: false })),
-      status: status.value,
-      ativo: true,
-      criado: new Date()
-    });
+  const clienteEl = document.getElementById('cliente');
+  const responsavelEl = document.getElementById('responsavel');
+  const operacoesEl = document.getElementById('operacoes');
+  const statusEl = document.getElementById('status');
 
-    cliente.value = '';
-    responsavel.value = '';
-    operacoes.value = '';
-  };
-
-  function carregarOrdens() {
-    db.collection('ordens').where('ativo', '==', true)
-      .onSnapshot(snapshot => {
-        lista.innerHTML = '';
-        snapshot.forEach(doc => {
-          const d = doc.data();
-          const li = document.createElement('li');
-          li.innerHTML = `
-            <strong>${d.cliente}</strong><br>
-            ${d.responsavel}<br>
-            <span>${d.status}</span><br>
-            ${usuarioAtual.role === 'admin'
-              ? `<button onclick="arquivar('${doc.id}')">Arquivar</button>`
-              : ''
-            }
-          `;
-          lista.appendChild(li);
-        });
-      });
+  if (!clienteEl || !responsavelEl || !operacoesEl || !statusEl) {
+    alert('Erro: campos do formulário não encontrados');
+    return;
   }
 
-  window.arquivar = function (id) {
-    db.collection('ordens').doc(id).update({ ativo: false });
-  };
+  if (!clienteEl.value || !responsavelEl.value) {
+    alert('Cliente e responsável são obrigatórios');
+    return;
+  }
 
-});
+  db.collection('ordens').add({
+    cliente: clienteEl.value,
+    responsavel: responsavelEl.value,
+    operacoes: operacoesEl.value
+      .split('\\n')
+      .filter(l => l.trim() !== '')
+      .map(o => ({ texto: o, feito: false })),
+    status: statusEl.value || 'pendente', // ✅ nunca undefined
+    ativo: true,
+    criado: new Date()
+  });
+
+  clienteEl.value = '';
+  responsavelEl.value = '';
+  operacoesEl.value = '';
+}
+
