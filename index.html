@@ -1,0 +1,69 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Eric Cycles • Dashboard</title>
+<link rel="stylesheet" href="style.css">
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script src="app.js"></script>
+</head>
+<body>
+
+<div id="login" class="login">
+  <h2>Login</h2>
+  <input id="email" placeholder="Email">
+  <input id="senha" type="password" placeholder="Senha">
+  <button onclick="login()">Entrar</button>
+</div>
+
+<div id="app" style="display:none">
+  <div class="sidebar">
+    <img src="assets/logo.png" class="logo">
+    <p id="perfil"></p>
+    <button onclick="logout()">Sair</button>
+  </div>
+
+  <div class="main">
+    <h1>Ordens de Serviço</h1>
+
+    <div class="card">
+      <input id="cliente" placeholder="Email do cliente">
+      <input id="responsavel" placeholder="Responsável">
+      <textarea id="operacoes" placeholder="Operações (uma por linha)"></textarea>
+      <select id="status">
+        <option value="pendente">Pendente</option>
+        <option value="andamento">Em andamento</option>
+        <option value="concluido">Concluído</option>
+      </select>
+      <button onclick="criarOrdem()">Criar Ordem</button>
+    </div>
+
+    <div class="card">
+      <ul id="lista"></ul>
+    </div>
+  </div>
+</div>
+
+<div id="modal" class="modal">
+  <div class="modal-content">
+    <h3>Editar Ordem</h3>
+    <input id="m_cliente">
+    <input id="m_responsavel">
+    <textarea id="m_operacoes"></textarea>
+    <select id="m_status">
+      <option value="pendente">Pendente</option>
+      <option value="andamento">Em andamento</option>
+      <option value="concluido">Concluído</option>
+    </select>
+    <button onclick="salvarEdicao()">Salvar</button>
+    <button onclick="fecharModal()">Cancelar</button>
+  </div>
+</div>
+
+</body>
+</html>
