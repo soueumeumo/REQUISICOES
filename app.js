@@ -1,8 +1,8 @@
 // FIREBASE CONFIG
 const firebaseConfig = {
-  apiKey: "SUA_API_KEY",
-  authDomain: "SEU_DOMINIO.firebaseapp.com",
-  projectId: "SEU_PROJECT_ID"
+  apiKey: "AIzaSyCXExMKGz5gKFnj2-KHAIMgbphUEKfV_KM",
+  authDomain: "dashboard-eric-2021.firebaseapp.com",
+  projectId: "dashboard-eric-2021"
 };
 
 firebase.initializeApp(firebaseConfig);
