@@ -76,8 +76,9 @@ function criarOrdem() {
   const operacoesEl = document.getElementById('operacoes');
   const statusEl = document.getElementById('status');
 
+  // Verificação obrigatória
   if (!clienteEl || !responsavelEl || !operacoesEl || !statusEl) {
-    alert('Erro interno: campos não encontrados');
+    alert('Erro interno: campos do formulário não encontrados');
     return;
   }
 
@@ -86,6 +87,7 @@ function criarOrdem() {
     return;
   }
 
+  // Garante que status nunca é undefined
   const statusFinal = statusEl.value || 'pendente';
 
   db.collection('ordens').add({
@@ -95,7 +97,7 @@ function criarOrdem() {
       .split('\n')
       .filter(l => l.trim() !== '')
       .map(o => ({ texto: o, feito: false })),
-    status: statusFinal,      // 🔥 IMPOSSÍVEL ser undefined
+    status: statusFinal,
     ativo: true,
     criado: new Date()
   });
